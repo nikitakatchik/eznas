@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BASE_DIR="$(dirname "$(readlink -f "${0}")")"
+
+IMAGE="ghcr.io/servercontainers/samba:a3.22.1-s4.21.4-r4"
+
+get_samba_hash_line() {
+  local regex
+
+  # user:RID:NTLM-or-LM:NTLM-or-LM:[flags]:LCT-HEX:
+  regex='^[^:[:space:]]+:[0-9]+:[[:xdigit:]Xx]{32}:[[:xdigit:]Xx]{32}:\[[^]]*\]:LCT-[[:xdigit:]]+:$'
+
+  # Run interactively, mirror EVERYTHING to the TTY so prompts are visible,
+  # but pass the stream through to grep and return only the first matching hash line.
+  docker run --rm -it --entrypoint create-hash.sh "${IMAGE}" 2>&1 \
+    | tee /dev/tty | sed -u 's/\r$//' | grep -m1 -E "${regex}"
+}
+
+HASH_LINE="$(get_samba_hash_line)"
+
+ENV_FILE_PATH="${BASE_DIR}/.env"
+rm -f "${ENV_FILE_PATH}"
+echo "HOSTNAME=$(hostname)" >> "${ENV_FILE_PATH}"
+echo "SMB_USER=$(echo "${HASH_LINE}" | cut -d: -f1)" >> "${ENV_FILE_PATH}"
+echo "SMB_HASH_LINE=${HASH_LINE}" >> "${ENV_FILE_PATH}"

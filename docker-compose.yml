@@ -1,0 +1,103 @@
+# tiny ring buffer logs -> fewer SD writes
+x-logging: &log_min
+  driver: json-file
+  options:
+    max-size: "1m"
+    max-file: "1"
+    compress: "false"
+
+services:
+  automount:
+    build: ./image/automount
+    privileged: true
+    pid: "host"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/run
+    volumes:
+      - type: bind
+        source: /dev
+        target: /dev
+      - type: bind
+        source: /media
+        target: /media
+    environment:
+      HOST_MOUNT_BASE: "/media"
+      HOST_UID: "1000"
+      HOST_GID: "1000"
+      HOST_UMASK: "022"
+    logging: *log_min
+
+  homebridge:
+    image: homebridge/homebridge:2025-08-20
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - "ENABLE_AVAHI=0"
+      - "TZ=Europe/London"
+    tmpfs:
+      - /home/homebridge/.npm:rw,mode=1777,size=128m
+      - /run:rw,exec,nosuid,nodev,size=16m
+      - /tmp
+    volumes:
+      - homebridge_data:/homebridge:rw
+    logging: *log_min
+
+  minidlna:
+    image: vladgh/minidlna:sha-bf288ff
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - "MINIDLNA_FRIENDLY_NAME=${HOSTNAME}"
+      - "MINIDLNA_INOTIFY=yes"
+      - "MINIDLNA_MEDIA_DIR=/media"
+      - "MINIDLNA_NOTIFY_INTERVAL=30"
+      - "PGID=1000"
+      - "PUID=1000"
+    tmpfs:
+      - /minidlna
+      - /run
+      - /tmp
+      - /var/cache/minidlna
+    volumes:
+      - type: bind
+        source: /media/usb
+        target: /media
+        read_only: true
+        bind:
+          propagation: rshared
+    logging: *log_min
+
+  samba:
+    image: ghcr.io/servercontainers/samba:a3.22.1-s4.21.4-r4
+    restart: unless-stopped
+    network_mode: host
+    cap_add: [CAP_NET_ADMIN]
+    environment:
+      - "ACCOUNT_${SMB_USER}=${SMB_HASH_LINE}"
+      - "SAMBA_CONF_WORKGROUP=WORKGROUP"
+      - "SAMBA_VOLUME_CONFIG_media=[media]; path = /shares/media; read only = no; browseable = yes; guest ok = no; vfs objects = catia fruit streams_xattr"
+      - "TZ=Europe/London"
+      - "UID_${SMB_USER}=1000"
+    tmpfs:
+      - /run
+      - /tmp
+      - /var/cache/samba
+      - /var/log/samba
+    volumes:
+      - samba_shares:/shares
+      - samba_state:/var/lib/samba
+      - type: bind
+        source: /media/usb
+        target: /shares/media
+        bind:
+          propagation: rshared
+    logging: *log_min
+
+volumes:
+  homebridge_data:
+  samba_shares:
+  samba_state:
