@@ -1,5 +1,5 @@
 # EZNAS
-#### Simple Home NAS setup (SMB, MiniDLNA, Homebridge)
+#### Simple Home NAS setup (SMB, MiniDLNA)
 
 Requires no prior setup except for Docker installation.
 

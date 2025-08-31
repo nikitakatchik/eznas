@@ -31,21 +31,6 @@ services:
       HOST_UMASK: "022"
     logging: *log_min
 
-  homebridge:
-    image: homebridge/homebridge:2025-08-20
-    restart: unless-stopped
-    network_mode: host
-    environment:
-      - "ENABLE_AVAHI=0"
-      - "TZ=Europe/London"
-    tmpfs:
-      - /home/homebridge/.npm:rw,mode=1777,size=128m
-      - /run:rw,exec,nosuid,nodev,size=16m
-      - /tmp
-    volumes:
-      - homebridge_data:/homebridge:rw
-    logging: *log_min
-
   minidlna:
     image: vladgh/minidlna:sha-bf288ff
     restart: unless-stopped
@@ -98,6 +83,5 @@ services:
     logging: *log_min
 
 volumes:
-  homebridge_data:
   samba_shares:
   samba_state:
