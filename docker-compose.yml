@@ -64,7 +64,7 @@ services:
     environment:
       - "ACCOUNT_${SMB_USER}=${SMB_HASH_LINE}"
       - "SAMBA_CONF_WORKGROUP=WORKGROUP"
-      - "SAMBA_VOLUME_CONFIG_media=[media]; path = /shares/media; read only = no; browseable = yes; guest ok = no; vfs objects = catia fruit streams_xattr"
+      - "SAMBA_VOLUME_CONFIG_media=[media]; path = /shares; read only = no; browseable = yes; guest ok = no; vfs objects = catia fruit streams_xattr"
       - "TZ=Europe/London"
       - "UID_${SMB_USER}=1000"
     tmpfs:
@@ -77,11 +77,10 @@ services:
       - samba_state:/var/lib/samba
       - type: bind
         source: /media/usb
-        target: /shares/media
+        target: /shares
         bind:
           propagation: rshared
     logging: *log_min
 
 volumes:
-  samba_shares:
   samba_state:
