@@ -36,7 +36,7 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      - "MINIDLNA_FRIENDLY_NAME=${HOSTNAME}"
+      - "MINIDLNA_FRIENDLY_NAME=${HOSTNAME} Media"
       - "MINIDLNA_INOTIFY=yes"
       - "MINIDLNA_MEDIA_DIR=/media"
       - "MINIDLNA_NOTIFY_INTERVAL=30"
@@ -73,8 +73,10 @@ services:
       - /var/cache/samba
       - /var/log/samba
     volumes:
-      - samba_shares:/shares
       - samba_state:/var/lib/samba
+      - type: bind
+        source: /etc/avahi/services
+        target: /external/avahi
       - type: bind
         source: /media/usb
         target: /shares

@@ -1,10 +1,22 @@
 # EZNAS
-#### Simple Home NAS setup (SMB, MiniDLNA)
 
-Requires no prior setup except for Docker installation.
+EZNAS is a lightweight, Docker-based home NAS that exposes attached USB drives over SMB and MiniDLNA.
 
-1. Invoke `envsetup` and follow the instructions to populate the required environment variables.
+Prerequisites
+- Docker (required)
+- Avahi for mDNS/hostname discovery (recommended). Avahi is installed by default on many distributions, including Raspberry Pi OS Lite.
 
-2. Invoke `docker compose up -d` to bring the services online.
+Quick start
+1. Run the environment setup script and follow the prompts to create the required environment variables:
 
-All USB devices should auto-mount and and appear in SMB/DLNA.
+```
+./envsetup
+```
+
+2. Start the services:
+
+```
+docker compose up -d
+```
+
+Once the services are running, attached USB devices should auto-mount and be available via SMB and DLNA.
